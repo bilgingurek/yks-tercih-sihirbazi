@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="title" content="YKS Puan Hesaplama — Portfolio ön yüzü">
+    <meta name="description" content="TYT ve AYT net girişi, OBP ve çok yıllı sonuç tabloları için portfolio (ön yüz) demosu. Backend bu pakete dahil değildir.">
+    <meta name="keywords" content="YKS puan hesaplama, 2026 YKS, TYT puan hesaplama, AYT puan hesaplama, OBP hesaplama, yerleştirme puanı, YKS robotu, YKS sıralama">
+    <title>YKS Puan Hesaplama — Portfolio (ön yüz)</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="assets/layout-shell.css">
+    <link rel="stylesheet" href="assets/puan-hesaplama.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "YKS puanı nasıl hesaplanır?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "YKS puanı, TYT ve AYT netlerinin ÖSYM katsayılarıyla çarpılması ve OBP'nin eklenmesiyle hesaplanır."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "OBP nedir ve nasıl hesaplanır?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "OBP (Okul Başarı Puanı), diploma notunun 5 ile çarpılmasıyla elde edilir ve yerleştirme puanına 0.12 katsayısı ile eklenir."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Zor sorular daha çok puan getirir mi?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Hayır, aynı testteki tüm sorular eşit puan değerindedir. Ancak testin genel zorluğu standart sapmayı etkileyebilir."
+          }
+        }
+      ]
+    }
+    </script>
+</head>
+<body>
+<!-- Menu Backdrop -->
+    <div class="menu-backdrop" id="menuBackdrop"></div>
+    
+        <!-- Üst çubuk (portfolio) -->
+    <header>
+        <nav class="portfolio-nav" aria-label="Ana gezinme">
+            <a href="index.html" class="logo">YKS Puan Hesaplama</a>
+            <button type="button" class="mobile-menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="navLinks">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <a href="#hesaplayici">Hesaplayıcı</a>
+                <a href="#hakkinda">Hakkında</a>
+                <a href="https://github.com/bilgingurek" rel="noopener noreferrer" target="_blank">GitHub</a>
+            </div>
+        </nav>
+    </header>
+<!-- Main Content -->
+    <main class="calculator-main" id="hesaplayici">
+        <!-- Ana Başlık -->
+        <div class="main-header" data-aos="fade-up">
+            <h1><i class="fas fa-calculator"></i> 2026 YKS Puan Sıralama Hesaplama – TYT, AYT ve OBP ile Güncel Net Hesaplama</h1>
+            <p>2022-2025 Otomatik Puan Değerlendirme Aracı</p>
+        </div>
+
+                <!-- Portfolio bilgisi (reklam slider yerine) -->
+        <section class="portfolio-notice" data-aos="fade-up" aria-label="Portfolio notu">
+            <p><strong>Portfolio sürümü:</strong> Arayüz ve istemci kodunun yanında <code>data/</code> klasöründe katsayı ve yığılma Excel tabloları da bulunur (sunucu tarafında okunur). Canlı hesaplama için <code>window.__YKS_API_BASE__</code> ile API kökünüzü tanımlayın. Ayrıntılar <code>README.md</code> içinde.</p>
+        </section>
+
+        <!-- Diploma Notu -->
+        <section class="calculator-section" data-aos="fade-up">
+            <div class="section-header-calc">
+                <i class="fas fa-graduation-cap"></i>
+                <h2>Diploma Notu</h2>
+            </div>
+            <div class="diploma-container">
+                <div class="diploma-input-compact">
+                    <label for="obp">Diploma Notu (100 üzerinden)</label>
+                    <input type="number" id="obp" min="0" max="100" step="0.1" value="85.0" class="input-field-compact">
+                </div>
+                <div class="previous-placement">
+                    <label class="switch-label">
+                        <span class="switch-text">Geçen Sene Yerleştim</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="previousPlacement">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- TYT Bölümü -->
+        <section class="calculator-section tyt-section" data-aos="fade-up">
+            <div class="section-header-calc tyt-header">
+                <i class="fas fa-book"></i>
+                <h2>TYT - Temel Yeterlilik Testi</h2>
+            </div>
+            <div class="test-grid">
+                <!-- Türkçe -->
+                <div class="test-card">
+                    <h3>Türkçe (40 Soru)</h3>
+                    <div class="input-group">
+                        <label>Doğru</label>
+                        <input type="number" id="tyt_turk_d" min="0" max="40" value="0" class="input-mini">
+                    </div>
+                    <div class="input-group">
+                        <label>Yanlış</label>
+                        <input type="number" id="tyt_turk_y" min="0" max="40" value="0" class="input-mini">
+                    </div>
+                    <div class="net-display">
+                        <span>Net:</span>
+                        <span id="tyt_turk_net" class="net-value">0.00</span>
+                    </div>
+                </div>
+
+                <!-- Sosyal Bilimler -->
+                <div class="test-card">
+                    <h3>Sosyal Bilimler (20 Soru)</h3>
+                    <div class="input-group">
+                        <label>Doğru</label>
+                        <input type="number" id="tyt_sos_d" min="0" max="20" value="0" class="input-mini">
+                    </div>
+                    <div class="input-group">
+                        <label>Yanlış</label>
+                        <input type="number" id="tyt_sos_y" min="0" max="20" value="0" class="input-mini">
+                    </div>
+                    <div class="net-display">
+                        <span>Net:</span>
+                        <span id="tyt_sos_net" class="net-value">0.00</span>
+                    </div>
+                </div>
+
+                <!-- Temel Matematik -->
+                <div class="test-card">
+                    <h3>Temel Matematik (40 Soru)</h3>
+                    <div class="input-group">
+                        <label>Doğru</label>
+                        <input type="number" id="tyt_mat_d" min="0" max="40" value="0" class="input-mini">
+                    </div>
+                    <div class="input-group">
+                        <label>Yanlış</label>
+                        <input type="number" id="tyt_mat_y" min="0" max="40" value="0" class="input-mini">
+                    </div>
+                    <div class="net-display">
+                        <span>Net:</span>
+                        <span id="tyt_mat_net" class="net-value">0.00</span>
+                    </div>
+                </div>
+
+                <!-- Fen Bilimleri -->
+                <div class="test-card">
+                    <h3>Fen Bilimleri (20 Soru)</h3>
+                    <div class="input-group">
+                        <label>Doğru</label>
+                        <input type="number" id="tyt_fen_d" min="0" max="20" value="0" class="input-mini">
+                    </div>
+                    <div class="input-group">
+                        <label>Yanlış</label>
+                        <input type="number" id="tyt_fen_y" min="0" max="20" value="0" class="input-mini">
+                    </div>
+                    <div class="net-display">
+                        <span>Net:</span>
+                        <span id="tyt_fen_net" class="net-value">0.00</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AYT Bölümü -->
+        <section class="calculator-section ayt-section" data-aos="fade-up">
+            <div class="section-header-calc ayt-header">
+                <i class="fas fa-book-open"></i>
+                <h2>AYT - Alan Yeterlilik Testi</h2>
+            </div>
+
+            <!-- Türk Dili ve Edebiyatı - Sosyal Bilimler 1 -->
+            <div class="subsection">
+                <h3 class="subsection-title">Türk Dili ve Edebiyatı - Sosyal Bilimler 1</h3>
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h3>Türk Dili ve Edebiyatı (24 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_ede_d" min="0" max="24" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_ede_y" min="0" max="24" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_ede_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="test-card">
+                        <h3>Tarih 1 (10 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_tar1_d" min="0" max="10" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_tar1_y" min="0" max="10" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_tar1_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="test-card">
+                        <h3>Coğrafya 1 (6 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_cog1_d" min="0" max="6" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_cog1_y" min="0" max="6" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_cog1_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sosyal Bilimler 2 -->
+            <div class="subsection">
+                <h3 class="subsection-title">Sosyal Bilimler 2</h3>
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h3>Tarih 2 (11 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_tar2_d" min="0" max="11" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_tar2_y" min="0" max="11" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_tar2_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="test-card">
+                        <h3>Coğrafya 2 (11 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_cog2_d" min="0" max="11" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_cog2_y" min="0" max="11" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_cog2_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="test-card">
+                        <h3>Felsefe Grubu (12 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_fel_d" min="0" max="12" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_fel_y" min="0" max="12" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_fel_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="test-card">
+                        <h3>DKAB (6 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_din_d" min="0" max="6" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_din_y" min="0" max="6" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_din_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matematik ve Fen Bilimleri -->
+            <div class="subsection">
+                <h3 class="subsection-title">Matematik ve Fen Bilimleri</h3>
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h3>Matematik (40 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_mat_d" min="0" max="40" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_mat_y" min="0" max="40" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_mat_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="test-card">
+                        <h3>Fizik (14 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_fiz_d" min="0" max="14" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_fiz_y" min="0" max="14" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_fiz_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="test-card">
+                        <h3>Kimya (13 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_kim_d" min="0" max="13" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_kim_y" min="0" max="13" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_kim_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="test-card">
+                        <h3>Biyoloji (13 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_bio_d" min="0" max="13" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_bio_y" min="0" max="13" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_bio_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yabancı Dil -->
+            <div class="subsection">
+                <h3 class="subsection-title">Yabancı Dil Testi</h3>
+                <div class="test-grid single-item">
+                    <div class="test-card">
+                        <h3>YDT (80 Soru)</h3>
+                        <div class="input-group">
+                            <label>Doğru</label>
+                            <input type="number" id="ayt_ydt_d" min="0" max="80" value="0" class="input-mini">
+                        </div>
+                        <div class="input-group">
+                            <label>Yanlış</label>
+                            <input type="number" id="ayt_ydt_y" min="0" max="80" value="0" class="input-mini">
+                        </div>
+                        <div class="net-display">
+                            <span>Net:</span>
+                            <span id="ayt_ydt_net" class="net-value">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hesapla Butonu -->
+        <div class="calculate-btn-container" data-aos="fade-up">
+            <button id="calculateBtn" class="calculate-btn">
+                HESAPLA
+            </button>
+        </div>
+
+        <!-- Sonuçlar Bölümü -->
+        <section id="resultsSection" class="results-section" style="display: none;">
+            <div class="section-header-calc results-header">
+                <i class="fas fa-chart-bar"></i>
+                <h2>Hesaplama Sonuçları</h2>
+            </div>
+            
+            <div class="info-box">
+                <p><strong>Önemli Not:</strong> Bu hesaplamalar, mevcut katsayılar ve yığılma verileri baz alınarak yapılan tahminlerdir. Gerçek sonuçlardan küçük de olsa farklılık gösterebilir.</p>
+            </div>
+
+            <div id="resultsContainer" class="results-container">
+                <!-- Sonuçlar buraya dinamik olarak eklenecek -->
+            </div>
+        </section>
+
+        <!-- Bilgilendirme Bölümü -->
+        <section class="info-section" data-aos="fade-up">
+            <div class="info-cards">
+                <div class="info-card">
+                    <i class="fas fa-lightbulb"></i>
+                    <h3>Nasıl Çalışır?</h3>
+                    <p>Doğru ve yanlış sayılarınızı girerek TYT ve AYT puanlarınızı, yerleştirme puanlarınızı ve tahmini sıralamalarınızı öğrenebilirsiniz.</p>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Puan Türleri</h3>
+                    <p>TYT, Sayısal (SAY), Sözel (SÖZ), Eşit Ağırlık (EA) ve Dil (DİL) olmak üzere 5 farklı puan türü için hesaplama yapılır.</p>
+                </div>
+                <div class="info-card">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>Yıllara Göre</h3>
+                    <p>2022, 2023, 2024 ve 2025 yıllarına ait verilerle karşılaştırmalı analiz yapabilirsiniz.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEO Content Section -->
+        <section class="seo-content-section" data-aos="fade-up">
+            <article class="content-article">
+                <h2 class="content-main-title">2026 YKS Puan Hesaplama Robotu – Güncel ÖSYM Verileriyle Net Hesaplama</h2>
+                <p class="content-intro">
+                    <strong>YKS puan hesaplama robotu 2026</strong>, ÖSYM'nin yayınladığı en güncel katsayılar ve standart sapma verileriyle hazırlanmıştır. Bu araç, TYT ve AYT netlerinizi girerek <strong>YKS yerleştirme puanınızı</strong> anında hesaplar. Hesaplamalar tamamen gerçek verilerle yapılır ve diploma notunuz otomatik olarak OBP'ye dönüştürülür.
+                </p>
+                <p>
+                    Öğrenciler için geliştirilmiş bu sistem, <strong>puan hesaplama</strong> sürecini kolaylaştırarak hangi bölüme yerleşme olasılığınızı görmenizi sağlar. Tüm işlemler güvenilir algoritmalar ve ÖSYM'nin resmi katsayılarına göre yapılmaktadır.
+                </p>
+            </article>
+
+            <article class="content-article">
+                <h2 class="content-title">YKS Puanı Nasıl Hesaplanır? (Güncel Katsayılarla)</h2>
+                <p>
+                    Puan hesaplama işlemi <strong>net hesaplaması</strong> ile başlar. Her testteki yanlış sayısının dörtte biri doğru sayısından çıkarılır ve kalan değer o testin netini verir. TYT ve AYT testlerinden gelen bu netler, ÖSYM'nin belirlediği katsayılarla çarpılarak <strong>ham puan</strong> oluşturur.
+                </p>
+                <p>
+                    Yerleştirme puanı ise ham puana <strong>OBP (Okul Başarı Puanı)</strong> eklenerek hesaplanır. OBP değeri, diploma notunun 100 üzerinden değeri × 0.6 formülüyle bulunur.
+                </p>
+                
+                <div class="formula-box">
+                    <h3 class="formula-title">2025 SAY Puanı Örnek Hesaplama Formülü</h3>
+                    <code class="formula-code">
+Y-SAY = 133.28 + (TR×1.11) + (SB×1.12) + (TM×1.11) + (FB×1.20)
+        + (M×3.19) + (F×2.43) + (K×3.07) + (B×2.51) + (N×0.6)
+                    </code>
+                </div>
+
+                <p class="content-note">
+                    <i class="fas fa-info-circle"></i> <em>Not:</em> "Zor sorular daha çok puan getirir" bilgisi <strong>yanlıştır</strong>. ÖSYM sisteminde her sorunun puan değeri test bazında eşittir.
+                </p>
+            </article>
+
+            <article class="content-article">
+                <h2 class="content-title">TYT ve AYT Puan Türleri Nelerdir?</h2>
+
+                <div class="puan-turu-card">
+                    <h3><i class="fas fa-calculator"></i> Sayısal (SAY) Puan Hesaplama</h3>
+                    <p>
+                        <strong>Sayısal puan</strong> türü, TYT testleri ile AYT'de yer alan Matematik, Fizik, Kimya ve Biyoloji testlerinden alınan netlerle hesaplanır. Bu puan türü genellikle mühendislik, tıp ve fen fakültelerine girişte kullanılır.
+                    </p>
+                </div>
+
+                <div class="puan-turu-card">
+                    <h3><i class="fas fa-balance-scale"></i> Eşit Ağırlık (EA) Puan Hesaplama</h3>
+                    <p>
+                        EA puanı hesaplanırken TYT testleriyle birlikte AYT'deki Matematik, Edebiyat, Tarih-1 ve Coğrafya-1 testleri dikkate alınır. Hukuk, işletme, psikoloji gibi bölümler bu puan türüyle öğrenci alır.
+                    </p>
+                </div>
+
+                <div class="puan-turu-card">
+                    <h3><i class="fas fa-book"></i> Sözel (SÖZ) Puan Hesaplama</h3>
+                    <p>
+                        Sözel puan türünde TYT testleriyle birlikte AYT'deki Edebiyat, Tarih-1, Coğrafya-1, Felsefe grubu ve DKAB testleri hesaba katılır. İletişim, eğitim ve sosyal bilimler alanındaki bölümler için bu puan kullanılır.
+                    </p>
+                </div>
+
+                <div class="puan-turu-card">
+                    <h3><i class="fas fa-language"></i> Dil (DİL) Puan Hesaplama</h3>
+                    <p>
+                        Dil puanı hesaplanırken TYT testleriyle birlikte YDT (Yabancı Dil Testi) sonuçları baz alınır. İngilizce, Almanca, Fransızca gibi dil bölümlerine yerleşmek için kullanılır.
+                    </p>
+                </div>
+            </article>
+
+            <article class="content-article">
+                <h2 class="content-title">Net Hesaplama Nasıl Yapılır?</h2>
+                <p>
+                    Her testteki yanlış sayısının dörtte biri doğru sayısından çıkarılarak net bulunur. Örneğin TYT'de 35 doğru ve 8 yanlışınız varsa: <strong>35 - (8 ÷ 4) = 33 net</strong>. Aynı yöntem tüm testlerde geçerlidir.
+                </p>
+            </article>
+
+            <article class="content-article">
+                <h2 class="content-title">OBP (Okul Başarı Puanı) Nasıl Hesaplanır?</h2>
+                <p>
+                    OBP, öğrencinin okul başarısını yansıtan ve yerleştirme puanına doğrudan etki eden katsayıdır. <strong>Diploma Notu × 5</strong> formülüyle hesaplanır. 100 üzerinden 85 diploma notu olan bir öğrencinin OBP'si 425'tir.
+                </p>
+                <p>
+                    OBP'nin YKS yerleştirme puanına etkisi, 0.12 katsayısıyla çarpılarak bulunur. Eğer öğrenci bir önceki yıl yerleştiyse bu katsayı 0.06'ya düşer.
+                </p>
+            </article>
+
+            <article class="content-article faq-section">
+                <h2 class="content-title">2026 YKS Sıralama Hesaplayıcı</h2>
+
+                <div class="faq-item-custom">
+                    <h3 class="faq-question"><i class="fas fa-question-circle"></i> YKS'de Zor Sorular Daha Çok Puan Getirir mi?</h3>
+                    <p class="faq-answer">
+                        Hayır. Aynı testteki tüm sorular eşit puan değerine sahiptir. Ancak testin genel zorluk seviyesi yükselirse standart sapma hesaplaması nedeniyle o testin puan katsayısı dolaylı olarak artabilir.
+                    </p>
+                </div>
+
+                <div class="faq-item-custom">
+                    <h3 class="faq-question"><i class="fas fa-question-circle"></i> Standart Sapma Neden Önemlidir?</h3>
+                    <p class="faq-answer">
+                        Standart sapma, her testin ülke ortalamasına göre zorluk düzeyini ölçer. Zor bir testte net yapmak, diğer adaylara göre daha yüksek puan getirir. Ancak bu fark, ÖSYM tarafından otomatik dengelenir.
+                    </p>
+                </div>
+
+                <div class="faq-item-custom">
+                    <h3 class="faq-question"><i class="fas fa-question-circle"></i> YKS'de Bir Sorunun Puanı Neden Her Yıl Değişir?</h3>
+                    <p class="faq-answer">
+                        Her yıl ÖSYM, adayların genel başarı ortalamasına göre test katsayılarını günceller. Bu nedenle bir yıl Türkçe testi zor olduğunda, bir Türkçe sorusunun puan değeri artabilir.
+                    </p>
+                </div>
+
+                <div class="faq-item-custom">
+                    <h3 class="faq-question"><i class="fas fa-question-circle"></i> TYT Puanı AYT'yi Etkiler mi?</h3>
+                    <p class="faq-answer">
+                        Evet. AYT puanı hesaplanırken TYT testlerinden gelen netler de hesaplamaya dahil edilir. Ancak 4 yıllık fakültelere yerleşirken kullanılan <strong>YKS yerleştirme puanı</strong> esas alınır.
+                    </p>
+                </div>
+            </article>
+
+            <!-- CTA Box -->
+            <div class="cta-content-box" data-aos="fade-up">
+                <div class="cta-icon">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <h3>2026 YKS Puanınızı Hemen Hesaplayın!</h3>
+                <p>
+                    Netlerinizi girin, <strong>YKS Puan Hesaplama Robotu</strong> saniyeler içinde TYT ve AYT puanınızı hesaplasın. Gerçek ÖSYM katsayılarıyla çalışan algoritma sayesinde en doğru sonucu elde edin.
+                </p>
+                <button class="cta-content-button" onclick="document.querySelector('.calculator-main').scrollIntoView({ behavior: 'smooth', block: 'start' });">
+                    <i class="fas fa-arrow-up"></i> YKS Puanımı Hesapla
+                </button>
+            </div>
+        </section>
+
+        <!-- SEO Info Section (Footer Üstü) -->
+        <section class="seo-info" data-aos="fade-up">
+            <div class="seo-info-container">
+                <h2>2026 YKS Puan Hesaplama Hakkında</h2>
+                <p>
+                    YKS puan hesaplama robotumuz, 2026 ÖSYM katsayılarına göre hazırlanmış en güncel TYT ve AYT puan hesaplama aracıdır. Diploma notunuzu girerek OBP katkısını otomatik ekleyebilir, yerleştirme puanınızı kolayca öğrenebilirsiniz. Bu sistem, ÖSYM verileriyle tam uyumlu olup TYT, SAY, EA, SÖZ ve DİL puan türlerinde doğru sonuç verir.
+                </p>
+            </div>
+        </section>
+    </main>
+
+        <footer class="footer" id="hakkinda">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <span class="footer-logo-text" aria-hidden="true">∑</span>
+                    <span>YKS Puan Hesaplama — Portfolio</span>
+                </div>
+                <p>Ön yüz: TYT/AYT net girişi, OBP ve çok yıllı sonuç tabloları. Backend ve veri tabloları bu pakete dahil değildir.</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-section">
+                    <h3>Kaynak</h3>
+                    <div class="social-links">
+                        <a href="https://github.com/bilgingurek" rel="noopener noreferrer" target="_blank">
+                            <i class="fab fa-github" style="font-size:1.25rem;width:24px;text-align:center"></i>
+                            <span>GitHub profili</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Portfolio gösterimi — Ticari üretim sürümünden ayrılmıştır.</p>
+        </div>
+    </footer>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="assets/puan-hesaplama.js"></script>
+    <script>
+        // AOS animasyonları başlat
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        // Mobil menü toggle
+        document.getElementById('menuToggle')?.addEventListener('click', function() {
+            const navLinks = document.getElementById('navLinks');
+            const menuBackdrop = document.getElementById('menuBackdrop');
+            navLinks.classList.toggle('active');
+            menuBackdrop.classList.toggle('active');
+        });
+
+        document.getElementById('menuBackdrop')?.addEventListener('click', function() {
+            const navLinks = document.getElementById('navLinks');
+            this.classList.remove('active');
+            navLinks.classList.remove('active');
+        });
+    </script>
+</body>
+</html>
+
+
